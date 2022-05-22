@@ -1,6 +1,7 @@
 package guru.springframework.orderservice.domain;
 
 import javax.persistence.*;
+import java.util.Set;
 
 @Entity
 @AttributeOverrides({
@@ -50,6 +51,17 @@ public class OrderHeader extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus;
 
+    @OneToMany(mappedBy = "orderHeader", cascade = CascadeType.PERSIST)
+    private Set<OrderLine> orderLines;
+
+    public Set<OrderLine> getOrderLines() {
+        return orderLines;
+    }
+
+    public void setOrderLines(Set<OrderLine> orderLines) {
+        this.orderLines = orderLines;
+    }
+
     public String getCustomer() {
         return customer;
     }
@@ -95,7 +107,8 @@ public class OrderHeader extends BaseEntity {
             return false;
         if (billToAddress != null ? !billToAddress.equals(that.billToAddress) : that.billToAddress != null)
             return false;
-        return orderStatus == that.orderStatus;
+        if (orderStatus != that.orderStatus) return false;
+        return orderLines != null ? orderLines.equals(that.orderLines) : that.orderLines == null;
     }
 
     @Override
@@ -105,6 +118,7 @@ public class OrderHeader extends BaseEntity {
         result = 31 * result + (shippingAddress != null ? shippingAddress.hashCode() : 0);
         result = 31 * result + (billToAddress != null ? billToAddress.hashCode() : 0);
         result = 31 * result + (orderStatus != null ? orderStatus.hashCode() : 0);
+        result = 31 * result + (orderLines != null ? orderLines.hashCode() : 0);
         return result;
     }
 }
