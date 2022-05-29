@@ -1,6 +1,7 @@
 package guru.springframework.orderservice.domain;
 
 import javax.persistence.*;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -52,8 +53,12 @@ public class OrderHeader extends BaseEntity {
     private OrderStatus orderStatus;
 
     @OneToMany(mappedBy = "orderHeader", cascade = CascadeType.PERSIST)
-    private Set<OrderLine> orderLines;
+    private Set<OrderLine> orderLines = new HashSet<>();
 
+    public void addOrderLine(OrderLine orderLine) {
+        orderLines.add(orderLine);
+        orderLine.setOrderHeader(this);
+    }
     public Set<OrderLine> getOrderLines() {
         return orderLines;
     }
