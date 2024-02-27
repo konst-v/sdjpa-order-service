@@ -1,9 +1,6 @@
 package guru.springframework.orderservice.repositories;
 
-import guru.springframework.orderservice.domain.OrderHeader;
-import guru.springframework.orderservice.domain.OrderLine;
-import guru.springframework.orderservice.domain.Product;
-import guru.springframework.orderservice.domain.ProductStatus;
+import guru.springframework.orderservice.domain.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +22,11 @@ public class OrderHeaderRepositoryTest {
     @Autowired
     ProductRepository productRepository;
 
+    @Autowired
+    CustomerRepository customerRepository;
+
     Product product;
+    Customer customer;
 
     @BeforeEach
     void setUp() {
@@ -33,12 +34,15 @@ public class OrderHeaderRepositoryTest {
         newProduct.setProductStatus(ProductStatus.NEW);
         newProduct.setDescription("test product");
         product = productRepository.saveAndFlush(newProduct);
+        customer = new Customer();
+        customer.setCustomerName("Test Customer");
+        customer = customerRepository.saveAndFlush(customer);
     }
 
     @Test
     void testSaveOrderLine() {
         OrderHeader orderHeader = new OrderHeader();
-        orderHeader.setCustomer("New Customer");
+        orderHeader.setCustomer(customer);
 
         OrderLine orderLine = new OrderLine();
         orderLine.setQuantityOrdered(5);
@@ -59,7 +63,7 @@ public class OrderHeaderRepositoryTest {
     @Test
     void testSaveOrder() {
         OrderHeader orderHeader = new OrderHeader();
-        orderHeader.setCustomer("New Customer");
+        orderHeader.setCustomer(customer);
         OrderHeader savedOrder = orderHeaderRepository.save(orderHeader);
 
         assertNotNull(savedOrder);
