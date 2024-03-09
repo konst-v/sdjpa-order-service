@@ -8,8 +8,9 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import javax.persistence.EntityNotFoundException;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 @ActiveProfiles("local")
 @DataJpaTest
@@ -50,6 +51,10 @@ public class OrderHeaderRepositoryTest {
 
         orderHeader.addOrderLine(orderLine);
 
+        OrderApproval approval = new OrderApproval();
+        approval.setApprovedBy("me");
+        orderHeader.setOrderApproval(approval);
+
         OrderHeader savedOrder = orderHeaderRepository.save(orderHeader);
         orderHeaderRepository.flush();
 
@@ -58,6 +63,7 @@ public class OrderHeaderRepositoryTest {
         assertNotNull(savedOrder.getOrderLines());
         assertEquals(savedOrder.getOrderLines().size(), 1);
         assertNotNull(savedOrder.getOrderLines().iterator().next().getId());
+        assertEquals(savedOrder.getOrderApproval().getApprovedBy(), "me");
     }
 
     @Test
@@ -75,5 +81,36 @@ public class OrderHeaderRepositoryTest {
         assertNotNull(savedOrder.getId());
         assertNotNull(savedOrder.getCreatedDate());
         assertNotNull(savedOrder.getLastModifiedDate());
+    }
+
+    @Test
+    void testDeleteCascade() {
+
+        OrderHeader orderHeader = new OrderHeader();
+        Customer customer = new Customer();
+        customer.setCustomerName("new Customer");
+        orderHeader.setCustomer(customerRepository.save(customer));
+
+        OrderLine orderLine = new OrderLine();
+        orderLine.setQuantityOrdered(3);
+        orderLine.setProduct(product);
+
+        OrderApproval approval = new OrderApproval();
+        approval.setApprovedBy("me");
+        orderHeader.setOrderApproval(approval);
+
+        orderHeader.addOrderLine(orderLine);
+        OrderHeader savedOrder = orderHeaderRepository.saveAndFlush(orderHeader);
+
+        System.out.println("order saved and flushed");
+
+        orderHeaderRepository.deleteById(savedOrder.getId());
+        orderHeaderRepository.flush();
+
+        assertThrows(EntityNotFoundException.class, () -> {
+            OrderHeader fetchedOrder = orderHeaderRepository.getById(savedOrder.getId());
+
+            assertNull(fetchedOrder);
+        });
     }
 }
